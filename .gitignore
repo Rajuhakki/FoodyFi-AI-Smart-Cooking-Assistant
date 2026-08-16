@@ -1,0 +1,24 @@
+# Environment files
+.env
+.env.local
+
+# Python cache & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Database & Media
+db.sqlite3
+media/
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Task logs & system caches
+.system_generated/
