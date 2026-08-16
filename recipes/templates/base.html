@@ -1,0 +1,74 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FoodyFi - AI Smart Cooking Assistant{% endblock %}</title>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+
+    <!-- Sticky Glass Navbar -->
+    <nav class="navbar">
+        <a href="{% url 'home' %}" class="brand-logo">
+            <i class="fas fa-utensils"></i>
+            <span class="brand-text">Foody<span class="gradient-text">Fi</span></span>
+        </a>
+        <div class="nav-links">
+            <a href="{% url 'home' %}" class="nav-link"><i class="fas fa-magic"></i> Generator</a>
+            <a href="{% url 'search_recipes' %}" class="nav-link"><i class="fas fa-search"></i> Search Recipes</a>
+            {% if request.session.mongo_user %}
+                <a href="{% url 'profile' %}" class="nav-link"><i class="fas fa-user-circle"></i> {{ request.session.mongo_user.username }}</a>
+                <a href="{% url 'logout' %}" class="nav-link btn-logout" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="nav-link"><i class="fas fa-sign-in-alt"></i> Login</a>
+                <a href="{% url 'register' %}" class="nav-link btn-register" style="background: var(--primary-gradient); color: white; padding: 0.4rem 1rem; border-radius: 20px;"><i class="fas fa-user-plus"></i> Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Main Content Body -->
+    <main class="container">
+        {% if messages %}
+            <div class="messages-container" style="max-width: 800px; margin: 1rem auto 1.5rem auto;">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}" style="padding: 1rem 1.2rem; border-radius: 12px; margin-bottom: 0.8rem; display: flex; align-items: center; justify-content: space-between; font-weight: 500; {% if message.tags == 'error' %}background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171;{% elif message.tags == 'success' %}background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399;{% else %}background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #60a5fa;{% endif %}">
+                        <span>
+                            {% if message.tags == 'error' %}<i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i>
+                            {% elif message.tags == 'success' %}<i class="fas fa-check-circle" style="margin-right: 8px;"></i>
+                            {% else %}<i class="fas fa-info-circle" style="margin-right: 8px;"></i>{% endif %}
+                            {{ message }}
+                        </span>
+                        <button onclick="this.parentElement.remove()" style="background: none; border: none; color: inherit; cursor: pointer; font-size: 1.1rem; opacity: 0.7;">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; {% now "Y" %} <strong>FoodyFi</strong> — AI-Powered Smart Cooking Assistant. Built with Django & OpenAI.</p>
+    </footer>
+
+    <!-- Global Loading Spinner Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">
+            <i class="fas fa-hat-cowboy-side"></i> FoodyFi AI is cooking up something special...
+        </div>
+    </div>
+
+    <!-- Custom JS -->
+    <script src="{% static 'js/app.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

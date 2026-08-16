@@ -1,0 +1,165 @@
+===============================================================================
+                       FOODYFI - PROJECT DOCUMENTATION
+               AI Smart Cooking Assistant & MongoDB Authentication
+===============================================================================
+
+1. PROJECT OVERVIEW
+-------------------------------------------------------------------------------
+FoodyFi is an AI-powered smart cooking assistant web application built using 
+Django (Python backend), MongoDB Atlas (User Storage), OpenAI (GPT-4o / Vision API 
+for Recipe Generation & Ingredient Detection), and Vanilla JS / CSS (Modern 
+Glassmorphism Web UI).
+
+Key Highlights:
+ - AI Recipe Generation in English, Kannada (ಕನ್ನಡ), and Hindi (हिंदी).
+ - Detailed 6-8 step cooking instructions with flame levels and timings.
+ - MongoDB Atlas user registration, password hashing, and session login.
+ - Dual-Engine Multilingual Voice Assistant (Text-To-Speech) for Kannada, Hindi & English.
+ - Hands-Free Voice Commands for kitchen navigation ("Next", "Back", "Listen").
+ - AI Vision ingredient detection from photo uploads.
+
+
+2. HOW TO RUN THE PROJECT
+-------------------------------------------------------------------------------
+Step 1: Install Python Dependencies
+   Run the following command in terminal:
+   pip install django pymongo dnspython certifi openai python-dotenv
+
+Step 2: Verify .env Configuration
+   Ensure the .env file in the root folder contains the working MongoDB Atlas URI:
+   MONGODB_URI=mongodb+srv://rajuhakki21_db_user:NcvPtWkHYMeRUHAR@cluster0.nsvze8d.mongodb.net/?appName=Cluster0
+
+Step 3: (Optional) Run Database Migrations for SQLite Local Models
+   python manage.py migrate
+
+Step 4: Start Development Server
+   python manage.py runserver
+
+Step 5: Open in Web Browser
+   Open your browser and navigate to:
+   http://127.0.0.1:8000/
+
+
+3. MONGODB ATLAS DATABASE & CREDENTIALS
+-------------------------------------------------------------------------------
+ - Connection URI: mongodb+srv://rajuhakki21_db_user:NcvPtWkHYMeRUHAR@cluster0.nsvze8d.mongodb.net/?appName=Cluster0
+ - Database Name: foodyfi_db
+ - Collection: users
+ - Document Schema:
+     {
+       "_id": ObjectId(...),
+       "username": "unique_username",
+       "email": "user@example.com",
+       "password": "pbkdf2_sha256$...", # Hashed with Django PBKDF2PasswordHasher
+       "full_name": "User Full Name",
+       "bio": "Food preferences",
+       "favorite_cuisine": "All Cuisines",
+       "created_at": ISODate(...),
+       "updated_at": ISODate(...)
+     }
+ - Atlas Security Requirement:
+   Ensure your current IP address (or 0.0.0.0/0) is whitelisted in MongoDB Atlas 
+   under Network Access -> Security.
+
+
+4. USER AUTHENTICATION & PAGE ACCESS FLOW
+-------------------------------------------------------------------------------
+ - Mandatory Access Sequence:
+     1. User Registration (/register/)
+     2. User Login (/login/)
+     3. Full Access to Application Pages
+
+ - Registration View (/register/):
+   Captures Full Name, Username, Email, and Password. Creates hashed user record in 
+   MongoDB Atlas, displays success toast message, and redirects to Login page.
+
+ - Login View (/login/):
+   Authenticates credentials against MongoDB Atlas hashed passwords. Sets session 
+   state (request.session['mongo_user']) and redirects user to Homepage.
+
+ - Protected Routes (@login_required_custom):
+   /                    (Home Generator)
+   /search/             (Recipe Search)
+   /generate/           (AI Recipe Creation)
+   /recipe/<id>/        (Recipe Detail)
+   /recipe/<id>/cooking/(Cooking Mode)
+   /profile/            (User Profile Dashboard)
+
+
+5. AI RECIPE & VISION SERVICES (recipes/ai_services.py)
+-------------------------------------------------------------------------------
+ - Ingredient Vision Detection (detect_ingredients_from_image):
+   Receives uploaded photo bytes and uses OpenAI Vision API (GPT-4o-mini) to 
+   identify ingredients with simulated fallback detection.
+
+ - In-Detail AI Recipe Generator (generate_recipe_ai):
+   Generates comprehensive, 6 to 8 step cooking instructions in English, Kannada, 
+   or Hindi. Each step details:
+     * Prep & knife-cut technique
+     * Flame level (low, medium, high)
+     * Exact timings in minutes
+     * Spice ratios & aroma checkpoints
+     * Final garnishing & serving pairings
+
+ - AI Food Photography (generate_food_image_ai):
+   Generates studio dish cover photography via OpenAI DALL-E 3 or Pollinations AI.
+
+
+6. MULTILINGUAL VOICE ASSISTANT & COOKING MODE (recipes/templates/recipes/cooking_mode.html)
+-------------------------------------------------------------------------------
+ - Dual-Engine Speech System:
+     Engine 1: Browser SpeechSynthesis (queries native voices kn-IN, hi-IN, en-US).
+     Engine 2: Cloud Native Audio Stream Fallback (100% guaranteed working native 
+               audio playback for Kannada, Hindi & English across all devices).
+
+ - Multilingual Hands-Free Voice Commands:
+     Listens via Web Speech Recognition API matching selected recipe language:
+     * English: "next", "back", "listen", "stop"
+     * Hindi: "आगे" / "अगला", "पीछे", "सुनो" / "पढ़ो", "रुको"
+     * Kannada: "ಮುಂದೆ", "ಹಿಂದೆ", "ಓದು" / "ಕೇಳು", "ನಿಲ್ಲಿಸು"
+
+ - Navigation Controls:
+     * Previous Step: Disabled on Step 1, active on Step 2+. Moves back 1 step.
+     * Next Step: Advances step by step; finishes cooking on final step.
+     * Review Steps: Jump back from celebration screen to re-review instructions.
+
+
+7. PROJECT FILE STRUCTURE MAP
+-------------------------------------------------------------------------------
+f:\foodyfi\
+├── manage.py                          # Django management script
+├── .env                               # Environment variables (MONGODB_URI)
+├── PROJECT_SUMMARY.txt                # Full project documentation (this file)
+│
+├── foodyfi/                           # Django Core Package
+│   ├── settings.py                    # Django configuration & MONGODB_URI loading
+│   ├── urls.py                        # Root URL router
+│   ├── wsgi.py                        # WSGI server entry point
+│   └── asgi.py                        # ASGI server entry point
+│
+└── recipes/                           # Main Recipes & Auth Application
+    ├── mongo.py                       # MongoDB Atlas PyMongo client & user operations
+    ├── ai_services.py                 # OpenAI GPT-4o, Vision, DALL-E & Image services
+    ├── views.py                       # Django views for auth, home, generator, cooking
+    ├── urls.py                        # App route definitions (/login, /register, etc.)
+    ├── models.py                      # Recipe, Rating, and Review SQLite models
+    ├── admin.py                       # Django admin configuration
+    │
+    ├── static/                        # Static Assets
+    │   ├── css/styles.css             # Glassmorphism design system & CSS styling
+    │   └── js/app.js                  # Frontend interactions & vision upload JS
+    │
+    └── templates/                     # HTML Templates
+        ├── base.html                  # Base layout with navbar & message alerts
+        └── recipes/
+            ├── home.html              # Main AI Generator homepage
+            ├── login.html             # User Login card template
+            ├── register.html          # User Registration template
+            ├── profile.html           # User Profile dashboard (MongoDB data)
+            ├── result.html            # Generated recipe result page
+            ├── search.html            # Recipe search page
+            └── cooking_mode.html      # Voice Assistant & Cooking Assistant page
+
+===============================================================================
+                              END OF DOCUMENTATION
+===============================================================================

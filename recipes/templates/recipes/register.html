@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Account - FoodyFi{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 75vh; padding: 1.5rem 0;">
+    <div class="glass-panel" style="width: 100%; max-width: 520px; padding: 2.5rem; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="width: 60px; height: 60px; margin: 0 auto 1rem auto; background: var(--primary-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3);">
+                <i class="fas fa-user-plus fa-lg" style="color: white;"></i>
+            </div>
+            <h2 style="font-size: 1.8rem; margin-bottom: 0.3rem;">Join FoodyFi</h2>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">Create your account stored securely in MongoDB</p>
+        </div>
+
+        <form method="POST" action="{% url 'register' %}">
+            {% csrf_token %}
+
+            <div class="form-group" style="margin-bottom: 1.1rem;">
+                <label class="form-label" for="full_name">
+                    <i class="fas fa-id-card" style="color: #10b981;"></i> Full Name
+                </label>
+                <input 
+                    type="text" 
+                    id="full_name" 
+                    name="full_name" 
+                    class="form-control" 
+                    placeholder="e.g. Raju Hakki" 
+                    value="{{ full_name|default:'' }}"
+                    style="padding: 0.8rem 1rem;"
+                />
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.1rem;">
+                <label class="form-label" for="username">
+                    <i class="fas fa-at" style="color: #f97316;"></i> Username <span style="color: #ef4444;">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    class="form-control" 
+                    placeholder="Choose a unique username" 
+                    value="{{ username|default:'' }}"
+                    required 
+                    style="padding: 0.8rem 1rem;"
+                />
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.1rem;">
+                <label class="form-label" for="email">
+                    <i class="fas fa-envelope" style="color: #3b82f6;"></i> Email Address <span style="color: #ef4444;">*</span>
+                </label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    class="form-control" 
+                    placeholder="name@example.com" 
+                    value="{{ email|default:'' }}"
+                    required 
+                    style="padding: 0.8rem 1rem;"
+                />
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.1rem;">
+                <label class="form-label" for="password">
+                    <i class="fas fa-lock" style="color: #ec4899;"></i> Password <span style="color: #ef4444;">*</span>
+                </label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    class="form-control" 
+                    placeholder="At least 6 characters" 
+                    required 
+                    style="padding: 0.8rem 1rem;"
+                />
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label class="form-label" for="confirm_password">
+                    <i class="fas fa-check-double" style="color: #8b5cf6;"></i> Confirm Password <span style="color: #ef4444;">*</span>
+                </label>
+                <input 
+                    type="password" 
+                    id="confirm_password" 
+                    name="confirm_password" 
+                    class="form-control" 
+                    placeholder="Re-enter your password" 
+                    required 
+                    style="padding: 0.8rem 1rem;"
+                />
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.95rem; font-size: 1.05rem; font-weight: 600; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                <i class="fas fa-user-check"></i> Register Account
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.8rem; padding-top: 1.2rem; border-top: 1px solid rgba(255,255,255,0.1); color: var(--text-secondary); font-size: 0.95rem;">
+            Already have an account? 
+            <a href="{% url 'login' %}" style="color: #f97316; font-weight: 600; text-decoration: none; margin-left: 4px;">Log In</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

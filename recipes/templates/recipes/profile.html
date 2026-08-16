@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User Profile - FoodyFi{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 2rem auto;">
+    
+    <!-- Profile Header Card -->
+    <div class="glass-panel" style="padding: 2.5rem; border-radius: 20px; margin-bottom: 2rem; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: 1.5rem; right: 1.5rem; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; font-size: 0.8rem; padding: 0.4rem 0.8rem; border-radius: 20px; font-weight: 600; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fas fa-database"></i> Stored in MongoDB Atlas
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1.8rem; flex-wrap: wrap;">
+            <div style="width: 90px; height: 90px; border-radius: 50%; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: white; box-shadow: 0 10px 25px rgba(249, 115, 22, 0.3);">
+                <i class="fas fa-user-chef"></i>
+            </div>
+            <div>
+                <h1 style="font-size: 2rem; margin-bottom: 0.3rem;">{{ user_doc.full_name|default:user_doc.username }}</h1>
+                <p style="color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 1rem;">
+                    <i class="fas fa-at" style="color: #f97316;"></i> @{{ user_doc.username }} &bull; 
+                    <i class="fas fa-envelope" style="color: #3b82f6;"></i> {{ user_doc.email }}
+                </p>
+                <div style="display: flex; gap: 0.8rem; margin-top: 0.8rem;">
+                    <span style="background: rgba(255,255,255,0.08); padding: 0.3rem 0.8rem; border-radius: 12px; font-size: 0.85rem; color: var(--text-secondary);">
+                        <i class="fas fa-utensils" style="color: #f59e0b;"></i> Favorite: {{ user_doc.favorite_cuisine|default:"All Cuisines" }}
+                    </span>
+                    <span style="background: rgba(255,255,255,0.08); padding: 0.3rem 0.8rem; border-radius: 12px; font-size: 0.85rem; color: var(--text-secondary);">
+                        <i class="fas fa-calendar-alt" style="color: #8b5cf6;"></i> Member Joined: {{ user_doc.created_at|date:"M Y" }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Form Card -->
+    <div class="glass-panel" style="padding: 2rem; border-radius: 20px;">
+        <h3 style="font-size: 1.4rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.6rem;">
+            <i class="fas fa-user-edit" style="color: #f97316;"></i> Edit Profile Details
+        </h3>
+
+        <form method="POST" action="{% url 'profile' %}">
+            {% csrf_token %}
+
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label class="form-label" for="full_name">
+                    <i class="fas fa-id-card" style="color: #10b981;"></i> Full Name
+                </label>
+                <input 
+                    type="text" 
+                    id="full_name" 
+                    name="full_name" 
+                    class="form-control" 
+                    value="{{ user_doc.full_name|default:'' }}" 
+                    placeholder="Enter your full name" 
+                    style="padding: 0.85rem 1rem;"
+                />
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label class="form-label" for="favorite_cuisine">
+                    <i class="fas fa-pizza-slice" style="color: #f59e0b;"></i> Favorite Cuisine
+                </label>
+                <input 
+                    type="text" 
+                    id="favorite_cuisine" 
+                    name="favorite_cuisine" 
+                    class="form-control" 
+                    value="{{ user_doc.favorite_cuisine|default:'' }}" 
+                    placeholder="e.g. South Indian, Italian, Chinese, Mughlai" 
+                    style="padding: 0.85rem 1rem;"
+                />
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label class="form-label" for="bio">
+                    <i class="fas fa-quote-left" style="color: #ec4899;"></i> About / Food Bio
+                </label>
+                <textarea 
+                    id="bio" 
+                    name="bio" 
+                    class="form-control" 
+                    rows="3" 
+                    placeholder="Tell us a bit about your cooking preferences..."
+                    style="padding: 0.85rem 1rem;"
+                >{{ user_doc.bio|default:'' }}</textarea>
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <button type="submit" class="btn btn-primary" style="padding: 0.85rem 1.8rem; font-size: 1rem; border-radius: 12px; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-save"></i> Save Profile Changes
+                </button>
+                <a href="{% url 'logout' %}" class="btn btn-secondary" style="padding: 0.85rem 1.5rem; font-size: 1rem; border-radius: 12px; display: flex; align-items: center; gap: 0.5rem; color: #ef4444;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

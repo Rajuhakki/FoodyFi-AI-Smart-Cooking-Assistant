@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - FoodyFi{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 70vh; padding: 1rem 0;">
+    <div class="glass-panel" style="width: 100%; max-width: 460px; padding: 2.5rem; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="width: 60px; height: 60px; margin: 0 auto 1rem auto; background: var(--primary-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3);">
+                <i class="fas fa-user-lock fa-lg" style="color: white;"></i>
+            </div>
+            <h2 style="font-size: 1.8rem; margin-bottom: 0.3rem;">Welcome Back</h2>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">Log in to access your FoodyFi MongoDB account</p>
+        </div>
+
+        <form method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label class="form-label" for="identifier">
+                    <i class="fas fa-user" style="color: #f97316;"></i> Username or Email
+                </label>
+                <input 
+                    type="text" 
+                    id="identifier" 
+                    name="identifier" 
+                    class="form-control" 
+                    placeholder="Enter your username or email" 
+                    value="{{ identifier|default:'' }}"
+                    required 
+                    style="padding: 0.85rem 1rem;"
+                />
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.75rem;">
+                <label class="form-label" for="password">
+                    <i class="fas fa-key" style="color: #3b82f6;"></i> Password
+                </label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    class="form-control" 
+                    placeholder="Enter your password" 
+                    required 
+                    style="padding: 0.85rem 1rem;"
+                />
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.95rem; font-size: 1.05rem; font-weight: 600; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                <i class="fas fa-sign-in-alt"></i> Log In
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.8rem; padding-top: 1.2rem; border-top: 1px solid rgba(255,255,255,0.1); color: var(--text-secondary); font-size: 0.95rem;">
+            Don't have an account? 
+            <a href="{% url 'register' %}" style="color: #f97316; font-weight: 600; text-decoration: none; margin-left: 4px;">Sign Up</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

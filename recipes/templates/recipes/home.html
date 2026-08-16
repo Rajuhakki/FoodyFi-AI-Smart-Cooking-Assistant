@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}FoodyFi - AI Smart Recipe Generator{% endblock %}
+
+{% block content %}
+<div class="hero-section" style="text-align: center; margin-bottom: 2.5rem;">
+    <h1 style="font-size: 2.8rem; margin-bottom: 0.5rem;">Turn Your Ingredients Into <span class="gradient-text">Delicious Recipes</span></h1>
+    <p style="color: var(--text-secondary); font-size: 1.15rem; max-width: 650px; margin: 0 auto;">
+        Enter ingredients manually, speak into your mic, or snap a photo. FoodyFi AI will craft a personalized step-by-step recipe instantly!
+    </p>
+</div>
+
+<!-- Main AI Generator Input Card -->
+<div class="glass-panel" style="padding: 2rem; max-width: 800px; margin: 0 auto 3rem auto;">
+    <form id="generate-recipe-form" action="{% url 'generate_recipe' %}" method="POST">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label class="form-label" for="ingredients-input">
+                <i class="fas fa-carrot" style="color: #f97316;"></i> What ingredients do you have?
+            </label>
+            <div class="input-wrapper">
+                <textarea 
+                    id="ingredients-input" 
+                    name="ingredients" 
+                    class="form-control" 
+                    rows="4" 
+                    placeholder="e.g. Paneer, Tomatoes, Garlic, Olive Oil, Butter..." 
+                    required></textarea>
+                
+                <!-- Input Action Controls (Voice + Vision) -->
+                <div class="input-controls">
+                    <button type="button" id="mic-btn" class="btn btn-secondary">
+                        <i class="fas fa-microphone" style="color: #ef4444;"></i> Speak Ingredients
+                    </button>
+                    <button type="button" id="vision-upload-btn" class="btn btn-secondary">
+                        <i class="fas fa-camera" style="color: #10b981;"></i> Detect from Photo
+                    </button>
+                    <!-- Hidden File Input for Vision API -->
+                    <input type="file" id="vision-file-input" accept="image/*" style="display: none;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Smart Ingredient Suggestion Chips -->
+        <div style="margin-bottom: 1.5rem;">
+            <span style="font-size: 0.875rem; color: var(--text-muted); font-weight: 600;">Quick Add Chips:</span>
+            <div class="chips-container">
+                {% for chip in smart_chips %}
+                    <span class="chip" data-value="{{ chip }}">+ {{ chip }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Language Selector -->
+        <div class="form-group">
+            <label class="form-label" for="language-select">
+                <i class="fas fa-globe" style="color: #3b82f6;"></i> Recipe Output Language
+            </label>
+            <select id="language-select" name="language" class="select-control">
+                <option value="English" selected>English</option>
+                <option value="Kannada">Kannada (ಕನ್ನಡ)</option>
+                <option value="Hindi">Hindi (हिंदी)</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1.1rem; font-size: 1.1rem;">
+            <i class="fas fa-wand-magic-sparkles"></i> Generate AI Recipe
+        </button>
+    </form>
+</div>
+
+<!-- Community Recent Recipes Carousel/Grid -->
+{% if recent_recipes %}
+<div style="margin-top: 3rem;">
+    <h2 style="font-size: 1.8rem; margin-bottom: 1rem;"><i class="fas fa-fire" style="color: #f59e0b;"></i> Recently Generated Recipes</h2>
+    <div class="recipe-grid">
+        {% for recipe in recent_recipes %}
+        <a href="{% url 'recipe_detail' recipe.id %}" class="glass-panel recipe-card">
+            {% if recipe.image_url %}
+                <img src="{{ recipe.image_url }}" alt="{{ recipe.title }}" class="card-img" loading="lazy">
+            {% else %}
+                <div class="card-img" style="background: var(--primary-gradient); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-utensils fa-3x" style="color: white;"></i>
+                </div>
+            {% endif %}
+            <div class="card-content">
+                <div>
+                    {% if recipe.funny_title %}
+                        <span class="funny-badge"><i class="fas fa-laugh-beam"></i> {{ recipe.funny_title }}</span>
+                    {% endif %}
+                    <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">{{ recipe.title }}</h3>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; font-size: 0.875rem; color: var(--text-secondary);">
+                    <span><i class="fas fa-globe"></i> {{ recipe.language }}</span>
+                    <span style="color: #f59e0b; font-weight: 600;"><i class="fas fa-star"></i> {{ recipe.average_rating }}</span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

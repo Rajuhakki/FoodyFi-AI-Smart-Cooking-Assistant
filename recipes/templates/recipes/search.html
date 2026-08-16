@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Search Recipes - FoodyFi{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+    
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem;"><i class="fas fa-search" style="color: #f97316;"></i> Search Recipe Database</h1>
+        <p style="color: var(--text-secondary);">Find dishes by recipe title, funny nickname, or ingredient keywords.</p>
+    </div>
+
+    <!-- Search Bar Form -->
+    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2.5rem;">
+        <form action="{% url 'search_recipes' %}" method="GET" style="display: flex; gap: 1rem;">
+            <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search for Paneer, Chicken, Spaghetti, Spicy..." style="flex: 1;" required>
+            <button type="submit" class="btn btn-primary" style="padding: 0 2rem;">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </form>
+    </div>
+
+    {% if query %}
+        <h3 style="margin-bottom: 1rem; color: var(--text-secondary);">
+            Search results for "<span style="color: white;">{{ query }}</span>":
+        </h3>
+    {% endif %}
+
+    {% if recipes %}
+        <div class="recipe-grid">
+            {% for recipe in recipes %}
+            <a href="{% url 'recipe_detail' recipe.id %}" class="glass-panel recipe-card">
+                {% if recipe.image_url %}
+                    <img src="{{ recipe.image_url }}" alt="{{ recipe.title }}" class="card-img" loading="lazy">
+                {% else %}
+                    <div class="card-img" style="background: var(--primary-gradient); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-utensils fa-3x" style="color: white;"></i>
+                    </div>
+                {% endif %}
+                <div class="card-content">
+                    <div>
+                        {% if recipe.funny_title %}
+                            <span class="funny-badge"><i class="fas fa-laugh-beam"></i> {{ recipe.funny_title }}</span>
+                        {% endif %}
+                        <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">{{ recipe.title }}</h3>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; font-size: 0.875rem; color: var(--text-secondary);">
+                        <span><i class="fas fa-globe"></i> {{ recipe.language }}</span>
+                        <span style="color: #f59e0b; font-weight: 600;"><i class="fas fa-star"></i> {{ recipe.average_rating }}</span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="glass-panel" style="padding: 3rem; text-align: center; color: var(--text-muted);">
+            <i class="fas fa-utensils fa-3x" style="margin-bottom: 1rem; display: block;"></i>
+            <h3>No recipes found matching your query.</h3>
+            <p style="margin-top: 0.5rem;">Try searching for different ingredients or <a href="{% url 'home' %}" style="color: #f97316;">generate a new AI recipe</a>!</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

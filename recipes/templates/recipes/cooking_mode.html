@@ -1,0 +1,411 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cooking Mode - {{ recipe.title }}{% endblock %}
+
+{% block content %}
+<div class="cooking-container" id="cooking-assistant-app">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <a href="{% url 'recipe_detail' recipe.id %}" class="btn btn-secondary">
+            <i class="fas fa-xmark"></i> Exit Cooking Mode
+        </a>
+        <span style="font-weight: 600; color: var(--text-secondary); font-size: 1.1rem;">
+            <i class="fas fa-utensils" style="color: #f97316;"></i> {{ recipe.title }} 
+            <span style="font-size: 0.8rem; background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 0.2rem 0.6rem; border-radius: 12px; margin-left: 0.5rem;">
+                <i class="fas fa-globe"></i> {{ recipe.language }}
+            </span>
+        </span>
+    </div>
+
+    <!-- Step Progress Bar -->
+    <div class="progress-bar-container" style="background: rgba(255,255,255,0.1); height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 1.5rem;">
+        <div class="progress-bar" id="cooking-progress-bar" style="height: 100%; width: 0%; background: var(--primary-gradient); transition: width 0.4s ease;"></div>
+    </div>
+
+    <!-- Active Step Card -->
+    <div class="glass-panel step-card" id="main-step-card" style="padding: 2.5rem; border-radius: 20px; text-align: center;">
+        <div class="step-number" id="current-step-number" style="font-size: 0.9rem; font-weight: 700; color: #f97316; letter-spacing: 1px; margin-bottom: 1rem;">
+            STEP 1 OF {{ steps|length }}
+        </div>
+        
+        <p class="step-text" id="current-step-text" style="font-size: 1.35rem; line-height: 1.8; font-weight: 500; margin-bottom: 2rem; min-height: 100px; display: flex; align-items: center; justify-content: center; padding: 0 1rem;">
+            {% if steps %}{{ steps.0 }}{% else %}Follow detailed instructions to cook this dish.{% endif %}
+        </p>
+        
+        <!-- Voice Assistant & Hands-Free Action Bar -->
+        <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+            <!-- Text-to-speech voice assistant button -->
+            <button type="button" id="tts-btn" class="btn btn-secondary" onclick="toggleSpeech()" style="padding: 0.8rem 1.4rem; font-size: 1rem; border-radius: 12px; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                <i class="fas fa-volume-high" id="tts-icon" style="color: #3b82f6;"></i> 
+                <span id="tts-btn-text">Listen Step ({{ recipe.language }} Voice)</span>
+            </button>
+            
+            <!-- Hands-Free Mic Command Button -->
+            <button type="button" id="voice-cmd-btn" class="btn btn-secondary" onclick="toggleVoiceCommands()" style="padding: 0.8rem 1.4rem; font-size: 1rem; border-radius: 12px; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                <i class="fas fa-microphone" id="mic-icon" style="color: #ef4444;"></i> 
+                <span id="voice-cmd-btn-text">Hands-Free Commands</span>
+            </button>
+        </div>
+        <div id="voice-cmd-status" style="font-size: 0.9rem; color: #34d399; margin-top: 0.8rem; display: none; font-weight: 500;">
+            <i class="fas fa-headset"></i> 
+            <span id="voice-cmd-hint">
+                {% if recipe.language == 'Kannada' %}
+                    ಧ್ವನಿ ನಿಯಂತ್ರಣ ಸಕ್ರಿಯವಾಗಿದೆ: <strong>"ಮುಂದೆ"</strong>, <strong>"ಹಿಂದೆ"</strong>, ಅಥವಾ <strong>"ಓದು"</strong> ಎಂದು ಹೇಳಿ!
+                {% elif recipe.language == 'Hindi' %}
+                    वॉइस कंट्रोल सक्रिय है: <strong>"आगे"</strong>, <strong>"पीछे"</strong>, या <strong>"सुनो"</strong> कहें!
+                {% else %}
+                    Hands-free active: Say <strong>"Next"</strong>, <strong>"Back"</strong>, or <strong>"Listen"</strong>!
+                {% endif %}
+            </span>
+        </div>
+    </div>
+
+    <!-- Navigation Control Buttons -->
+    <div id="step-nav-buttons" style="display: flex; justify-content: space-between; gap: 1rem; margin-top: 1.5rem;">
+        <button type="button" id="prev-step-btn" class="btn btn-secondary" onclick="prevStep()" style="flex: 1; padding: 1rem; font-size: 1.05rem; border-radius: 12px; opacity: 0.5; cursor: not-allowed;" disabled>
+            <i class="fas fa-arrow-left"></i> Previous Step
+        </button>
+        <button type="button" id="next-step-btn" class="btn btn-primary" onclick="nextStep()" style="flex: 1; padding: 1rem; font-size: 1.05rem; border-radius: 12px; cursor: pointer;">
+            Next Step <i class="fas fa-arrow-right"></i>
+        </button>
+    </div>
+
+    <!-- Finish Celebration Screen -->
+    <div class="glass-panel" id="cooking-finish-screen" style="display: none; padding: 3rem; text-align: center; margin-top: 1.5rem; border-radius: 20px;">
+        <div style="font-size: 4rem; color: #10b981; margin-bottom: 1rem;">
+            <i class="fas fa-trophy"></i>
+        </div>
+        <h2 style="font-size: 2.2rem; margin-bottom: 0.5rem;">Bon Appétit!</h2>
+        <p style="color: var(--text-secondary); font-size: 1.2rem; margin-bottom: 2rem;">
+            You have successfully completed cooking <strong>{{ recipe.title }}</strong>!
+        </p>
+        <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+            <button type="button" onclick="goToLastStep()" class="btn btn-secondary" style="padding: 0.9rem 1.5rem; border-radius: 12px; cursor: pointer;">
+                <i class="fas fa-arrow-left"></i> Review Steps
+            </button>
+            <a href="{% url 'recipe_detail' recipe.id %}" class="btn btn-primary" style="padding: 0.9rem 1.5rem; border-radius: 12px;">
+                <i class="fas fa-star"></i> Rate & Review Dish
+            </a>
+            <a href="{% url 'home' %}" class="btn btn-secondary" style="padding: 0.9rem 1.5rem; border-radius: 12px;">
+                <i class="fas fa-plus"></i> Cook Another Recipe
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Injected steps data & recipe language from Django backend
+    const stepsData = {{ steps_json|safe }};
+    const recipeLang = "{{ recipe.language }}"; // 'Kannada', 'Hindi', or 'English'
+    
+    let currentIndex = 0;
+    let isSpeaking = false;
+    let isListeningCmd = false;
+    let recognition = null;
+    let currentAudio = null;
+
+    // BCP 47 Language Code Mapper
+    function getLangCode() {
+        if (recipeLang === 'Kannada') return 'kn-IN';
+        if (recipeLang === 'Hindi') return 'hi-IN';
+        return 'en-US';
+    }
+
+    // Check if local browser has installed native voice
+    function getNativeVoice(langCode) {
+        if (!('speechSynthesis' in window)) return null;
+        const voices = window.speechSynthesis.getVoices();
+        if (!voices || voices.length === 0) return null;
+
+        const langPrefix = langCode.split('-')[0];
+        let voice = voices.find(v => v.lang === langCode || v.lang.replace('_', '-') === langCode);
+        if (!voice) {
+            voice = voices.find(v => v.lang.startsWith(langPrefix) || v.name.toLowerCase().includes(recipeLang.toLowerCase()));
+        }
+        return voice;
+    }
+
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = () => {
+            getNativeVoice(getLangCode());
+        };
+    }
+
+    function renderStepUI() {
+        stopSpeech();
+        const totalSteps = stepsData.length;
+        const prevBtn = document.getElementById('prev-step-btn');
+        const nextBtn = document.getElementById('next-step-btn');
+
+        if (currentIndex < totalSteps) {
+            document.getElementById('main-step-card').style.display = 'block';
+            document.getElementById('cooking-finish-screen').style.display = 'none';
+
+            document.getElementById('current-step-number').textContent = `STEP ${currentIndex + 1} OF ${totalSteps}`;
+            document.getElementById('current-step-text').textContent = stepsData[currentIndex];
+
+            const progress = ((currentIndex + 1) / totalSteps) * 100;
+            document.getElementById('cooking-progress-bar').style.width = `${progress}%`;
+
+            if (prevBtn) {
+                prevBtn.disabled = (currentIndex === 0);
+                prevBtn.style.opacity = (currentIndex === 0) ? '0.5' : '1';
+                prevBtn.style.cursor = (currentIndex === 0) ? 'not-allowed' : 'pointer';
+            }
+
+            if (nextBtn) {
+                nextBtn.innerHTML = (currentIndex === totalSteps - 1) ? 
+                    'Finish Cooking <i class="fas fa-check"></i>' : 
+                    'Next Step <i class="fas fa-arrow-right"></i>';
+            }
+        } else {
+            document.getElementById('main-step-card').style.display = 'none';
+            document.getElementById('cooking-finish-screen').style.display = 'block';
+            document.getElementById('cooking-progress-bar').style.width = '100%';
+
+            if (prevBtn) {
+                prevBtn.disabled = false;
+                prevBtn.style.opacity = '1';
+                prevBtn.style.cursor = 'pointer';
+            }
+        }
+    }
+
+    function nextStep() {
+        if (currentIndex < stepsData.length) {
+            currentIndex++;
+            renderStepUI();
+        }
+    }
+
+    function prevStep() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            renderStepUI();
+        }
+    }
+
+    function goToLastStep() {
+        if (stepsData.length > 0) {
+            currentIndex = stepsData.length - 1;
+            renderStepUI();
+        }
+    }
+
+    // --- 1. DUAL-ENGINE MULTILINGUAL VOICE ASSISTANT ---
+    function toggleSpeech() {
+        if (isSpeaking) {
+            stopSpeech();
+        } else {
+            speakCurrentStep();
+        }
+    }
+
+    function speakCurrentStep() {
+        stopSpeech();
+        const textToSpeak = stepsData[currentIndex];
+        if (!textToSpeak) return;
+
+        const langCode = getLangCode();
+        const nativeVoice = getNativeVoice(langCode);
+
+        // If local browser voice for language is available, use SpeechSynthesis
+        if (nativeVoice && 'speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.lang = langCode;
+            utterance.rate = 0.92;
+            utterance.voice = nativeVoice;
+
+            utterance.onstart = () => setSpeakingStateUI();
+            utterance.onend = () => resetTtsUI();
+            utterance.onerror = () => speakCloudAudio(textToSpeak);
+
+            window.speechSynthesis.speak(utterance);
+        } else {
+            // High-Quality Native Cloud Audio TTS Fallback
+            speakCloudAudio(textToSpeak);
+        }
+    }
+
+    function speakCloudAudio(text) {
+        let tld = 'en';
+        if (recipeLang === 'Kannada') tld = 'kn';
+        else if (recipeLang === 'Hindi') tld = 'hi';
+
+        const textChunk = text.substring(0, 190);
+        const encoded = encodeURIComponent(textChunk);
+        const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${tld}&client=tw-ob&q=${encoded}`;
+
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio = null;
+        }
+
+        currentAudio = new Audio(audioUrl);
+
+        currentAudio.onplay = () => setSpeakingStateUI();
+        currentAudio.onended = () => resetTtsUI();
+        currentAudio.onerror = (e) => {
+            console.error('Cloud TTS Audio Error:', e);
+            resetTtsUI();
+        };
+
+        currentAudio.play().catch(err => {
+            console.warn('Audio playback error:', err);
+            resetTtsUI();
+        });
+    }
+
+    function setSpeakingStateUI() {
+        isSpeaking = true;
+        const ttsBtn = document.getElementById('tts-btn');
+        const ttsText = document.getElementById('tts-btn-text');
+        const ttsIcon = document.getElementById('tts-icon');
+        if (ttsBtn) {
+            ttsBtn.style.background = 'rgba(59, 130, 246, 0.25)';
+            ttsBtn.style.borderColor = '#3b82f6';
+        }
+        if (ttsText) ttsText.textContent = `Speaking ${recipeLang}... (Click to Pause)`;
+        if (ttsIcon) ttsIcon.className = 'fas fa-pause';
+    }
+
+    function stopSpeech() {
+        if ('speechSynthesis' in window && window.speechSynthesis.speaking) {
+            window.speechSynthesis.cancel();
+        }
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio = null;
+        }
+        resetTtsUI();
+    }
+
+    function resetTtsUI() {
+        isSpeaking = false;
+        const ttsBtn = document.getElementById('tts-btn');
+        const ttsText = document.getElementById('tts-btn-text');
+        const ttsIcon = document.getElementById('tts-icon');
+        if (ttsBtn) {
+            ttsBtn.style.background = '';
+            ttsBtn.style.borderColor = '';
+        }
+        if (ttsText) ttsText.textContent = `Listen Step (${recipeLang} Voice)`;
+        if (ttsIcon) ttsIcon.className = 'fas fa-volume-high';
+    }
+
+    // --- 2. MULTILINGUAL HANDS-FREE VOICE COMMANDS ---
+    function toggleVoiceCommands() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert('Hands-Free Voice Recognition is not supported by your browser. Please try Chrome, Edge, or Safari.');
+            return;
+        }
+
+        if (isListeningCmd) {
+            stopVoiceCommands();
+        } else {
+            startVoiceCommands(SpeechRecognition);
+        }
+    }
+
+    function startVoiceCommands(SpeechRecognition) {
+        try {
+            const langCode = getLangCode();
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = false;
+            recognition.lang = langCode;
+
+            recognition.onstart = () => {
+                isListeningCmd = true;
+                const cmdBtn = document.getElementById('voice-cmd-btn');
+                const cmdText = document.getElementById('voice-cmd-btn-text');
+                const cmdStatus = document.getElementById('voice-cmd-status');
+                if (cmdBtn) {
+                    cmdBtn.style.background = 'rgba(239, 68, 68, 0.25)';
+                    cmdBtn.style.borderColor = '#ef4444';
+                }
+                if (cmdText) cmdText.textContent = 'Listening Commands...';
+                if (cmdStatus) cmdStatus.style.display = 'block';
+            };
+
+            recognition.onresult = (event) => {
+                const lastIdx = event.results.length - 1;
+                const transcript = event.results[lastIdx][0].transcript.toLowerCase().trim();
+                console.log(`Voice Command Heard (${langCode}):`, transcript);
+
+                const isNext = transcript.includes('next') || transcript.includes('forward') || 
+                               transcript.includes('आगे') || transcript.includes('अगला') || 
+                               transcript.includes('ಮುಂದೆ') || transcript.includes('munde') || transcript.includes('aage');
+
+                const isBack = transcript.includes('back') || transcript.includes('previous') || 
+                              transcript.includes('पीछे') || transcript.includes('हटो') || 
+                              transcript.includes('ಹಿಂದೆ') || transcript.includes('hinde') || transcript.includes('peeche');
+
+                const isListen = transcript.includes('listen') || transcript.includes('read') || transcript.includes('speak') || transcript.includes('repeat') || 
+                                transcript.includes('सुनो') || transcript.includes('पढ़ो') || 
+                                transcript.includes('ಓದು') || transcript.includes('ಕೇಳು') || transcript.includes('suno') || transcript.includes('kelu');
+
+                const isStop = transcript.includes('stop') || transcript.includes('pause') || 
+                               transcript.includes('रुको') || transcript.includes('निल्ಲಿಸು') || transcript.includes('nillisu') || transcript.includes('ruko');
+
+                if (isNext) {
+                    nextStep();
+                } else if (isBack) {
+                    prevStep();
+                } else if (isListen) {
+                    speakCurrentStep();
+                } else if (isStop) {
+                    stopSpeech();
+                }
+            };
+
+            recognition.onerror = (e) => {
+                console.warn('Voice command recognition error:', e.error);
+                if (e.error === 'not-allowed') {
+                    alert('Microphone access was denied. Please allow microphone permissions in browser settings.');
+                    stopVoiceCommands();
+                }
+            };
+
+            recognition.onend = () => {
+                if (isListeningCmd) {
+                    try { recognition.start(); } catch(err) {}
+                } else {
+                    stopVoiceCommands();
+                }
+            };
+
+            recognition.start();
+        } catch(err) {
+            console.error('Error starting voice recognition:', err);
+            stopVoiceCommands();
+        }
+    }
+
+    function stopVoiceCommands() {
+        isListeningCmd = false;
+        if (recognition) {
+            try { recognition.stop(); } catch(e) {}
+        }
+        const cmdBtn = document.getElementById('voice-cmd-btn');
+        const cmdText = document.getElementById('voice-cmd-btn-text');
+        const cmdStatus = document.getElementById('voice-cmd-status');
+        if (cmdBtn) {
+            cmdBtn.style.background = '';
+            cmdBtn.style.borderColor = '';
+        }
+        if (cmdText) cmdText.textContent = 'Hands-Free Commands';
+        if (cmdStatus) cmdStatus.style.display = 'none';
+    }
+
+    // Initialize UI on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        renderStepUI();
+    });
+</script>
+{% endblock %}

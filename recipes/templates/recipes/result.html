@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ recipe.title }} - FoodyFi AI Recipe{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    
+    <a href="{% url 'home' %}" class="btn btn-secondary" style="margin-bottom: 1.5rem;">
+        <i class="fas fa-arrow-left"></i> Back to Generator
+    </a>
+
+    <!-- Recipe Main Hero Card -->
+    <div class="glass-panel" style="overflow: hidden; margin-bottom: 2.5rem;">
+        <!-- AI Food Image -->
+        {% if recipe.image_url %}
+        <div style="position: relative; width: 100%; height: 380px; overflow: hidden;">
+            <img src="{{ recipe.image_url }}" alt="{{ recipe.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 2rem; background: linear-gradient(to top, rgba(15, 23, 42, 0.95), transparent);">
+                {% if recipe.funny_title %}
+                    <span class="funny-badge" style="font-size: 0.9rem; padding: 0.35rem 0.8rem;">
+                        <i class="fas fa-laugh-beam"></i> {{ recipe.funny_title }}
+                    </span>
+                {% endif %}
+                <h1 style="font-size: 2.5rem; color: white; margin-top: 0.5rem;">{{ recipe.title }}</h1>
+            </div>
+        </div>
+        {% else %}
+        <div style="padding: 2rem;">
+            {% if recipe.funny_title %}
+                <span class="funny-badge"><i class="fas fa-laugh-beam"></i> {{ recipe.funny_title }}</span>
+            {% endif %}
+            <h1 style="font-size: 2.5rem;">{{ recipe.title }}</h1>
+        </div>
+        {% endif %}
+
+        <div style="padding: 2rem;">
+            <!-- Interactive Rating & Meta Info Bar -->
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-glass);">
+                
+                <!-- Average Rating Display -->
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-size: 1.5rem; font-weight: 700; color: #f59e0b;" id="avg-rating-display">{{ avg_rating }}</span>
+                    <div id="rating-widget" class="star-rating" data-recipe-id="{{ recipe.id }}">
+                        <i class="fas fa-star" data-value="1"></i>
+                        <i class="fas fa-star" data-value="2"></i>
+                        <i class="fas fa-star" data-value="3"></i>
+                        <i class="fas fa-star" data-value="4"></i>
+                        <i class="fas fa-star" data-value="5"></i>
+                    </div>
+                    <span style="color: var(--text-secondary); font-size: 0.9rem;" id="ratings-count-display">({{ ratings_count }} ratings)</span>
+                </div>
+
+                <div style="display: flex; gap: 1rem; font-size: 0.9rem; color: var(--text-secondary);">
+                    <span><i class="fas fa-globe"></i> Language: <strong>{{ recipe.language }}</strong></span>
+                    <span><i class="far fa-clock"></i> {{ recipe.created_at|date:"M d, Y" }}</span>
+                </div>
+            </div>
+
+            <!-- Fun Fact Highlight Box -->
+            {% if recipe.fun_fact %}
+            <div style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b; border-radius: var(--radius-sm); padding: 1.25rem; margin-bottom: 2rem;">
+                <h4 style="color: #f59e0b; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-lightbulb"></i> Chef's Fun Fact
+                </h4>
+                <p style="font-style: italic; color: var(--text-primary);">"{{ recipe.fun_fact }}"</p>
+            </div>
+            {% endif %}
+
+            <!-- Interactive Cooking Mode CTA Banner -->
+            <div class="glass-panel" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(239, 68, 68, 0.2)); border-color: rgba(249, 115, 22, 0.4); padding: 1.5rem; text-align: center; margin-bottom: 2.5rem;">
+                <h3 style="margin-bottom: 0.5rem;"><i class="fas fa-hat-chef"></i> Ready to cook this dish?</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1.25rem;">Use interactive Cooking Mode with hands-free Voice Text-To-Speech assistant.</p>
+                <a href="{% url 'cooking_mode' recipe.id %}" class="btn btn-primary" style="padding: 0.9rem 2rem; font-size: 1.1rem;">
+                    <i class="fas fa-play"></i> Start Interactive Cooking Mode
+                </a>
+            </div>
+
+            <!-- Ingredients Section -->
+            <div style="margin-bottom: 2.5rem;">
+                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: #f97316;">
+                    <i class="fas fa-basket-shopping"></i> Ingredients Needed
+                </h3>
+                <ul style="list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.75rem;">
+                    {% for item in ingredients_list %}
+                    <li class="glass-panel" style="padding: 0.75rem 1rem; border-radius: var(--radius-sm); display: flex; align-items: center; gap: 0.75rem;">
+                        <i class="fas fa-circle-check" style="color: #10b981;"></i>
+                        <span>{{ item }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Step-by-Step Overview Section -->
+            <div>
+                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: #f97316;">
+                    <i class="fas fa-list-check"></i> Step-by-Step Instructions
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    {% for step in steps %}
+                    <div class="glass-panel" style="padding: 1.25rem; display: flex; gap: 1rem; align-items: flex-start;">
+                        <div style="background: var(--primary-gradient); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">
+                            {{ forloop.counter }}
+                        </div>
+                        <p style="line-height: 1.6; padding-top: 0.2rem;">{{ step }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Rating & Reviews Community Section -->
+    <div class="glass-panel" style="padding: 2rem; margin-bottom: 3rem;">
+        <h3 style="font-size: 1.6rem; margin-bottom: 1.5rem;">
+            <i class="fas fa-comments" style="color: #3b82f6;"></i> Community Reviews & Feedback
+        </h3>
+
+        <!-- Add Review Form -->
+        <form action="{% url 'add_review' recipe.id %}" method="POST" style="margin-bottom: 2rem;">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label" for="review-comment">Leave a Review:</label>
+                <textarea id="review-comment" name="comment" class="form-control" rows="3" placeholder="Did you enjoy cooking this dish? Share your tips or feedback..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-secondary">
+                <i class="fas fa-paper-plane"></i> Post Comment
+            </button>
+        </form>
+
+        <!-- Display Reviews -->
+        {% if reviews %}
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                {% for review in reviews %}
+                <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem;">
+                        <span><i class="fas fa-user-circle"></i> Foodie Chef</span>
+                        <span>{{ review.created_at|date:"M d, Y H:i" }}</span>
+                    </div>
+                    <p style="color: var(--text-primary); line-height: 1.5;">{{ review.comment }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: var(--text-muted); font-style: italic;">No reviews yet. Be the first to share your thoughts!</p>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
