@@ -15,16 +15,20 @@ DEFAULT_MONGODB_URI = "mongodb+srv://rajuhakki21_db_user:NcvPtWkHYMeRUHAR@cluste
 
 _mongo_client = None
 
+_last_mongo_error = None
+
 def reset_mongo_client():
-    global _mongo_client
+    global _mongo_client, _last_mongo_error
     _mongo_client = None
+    _last_mongo_error = None
 
 def get_mongo_client():
-    global _mongo_client
+    global _mongo_client, _last_mongo_error
     load_dotenv(override=True)
     uri = os.getenv('MONGODB_URI') or getattr(settings, 'MONGODB_URI', '') or DEFAULT_MONGODB_URI
     if not uri:
-        logger.error("No MONGODB_URI configured.")
+        _last_mongo_error = "No MONGODB_URI configured."
+        logger.error(_last_mongo_error)
         return None
 
     if _mongo_client is not None:
@@ -37,35 +41,39 @@ def get_mongo_client():
     try:
         client = MongoClient(
             uri,
-            serverSelectionTimeoutMS=5000,
+            serverSelectionTimeoutMS=15000,
             tlsCAFile=certifi.where()
         )
         client.admin.command('ping')
         _mongo_client = client
+        _last_mongo_error = None
         return _mongo_client
     except Exception as e:
         logger.warning(f"MongoClient with certifi failed: {e}. Trying default SSL context...")
         try:
             client = MongoClient(
                 uri,
-                serverSelectionTimeoutMS=5000
+                serverSelectionTimeoutMS=15000
             )
             client.admin.command('ping')
             _mongo_client = client
+            _last_mongo_error = None
             return _mongo_client
         except Exception as err:
             logger.warning(f"MongoClient default failed: {err}. Trying tlsAllowInvalidCertificates...")
             try:
                 client = MongoClient(
                     uri,
-                    serverSelectionTimeoutMS=5000,
+                    serverSelectionTimeoutMS=15000,
                     tls=True,
                     tlsAllowInvalidCertificates=True
                 )
                 client.admin.command('ping')
                 _mongo_client = client
+                _last_mongo_error = None
                 return _mongo_client
             except Exception as final_err:
+                _last_mongo_error = str(final_err)
                 logger.error(f"Failed to connect to MongoDB: {final_err}")
                 return None
 
@@ -105,7 +113,8 @@ def create_user(username, email, password, full_name=""):
     try:
         users = get_users_collection()
         if users is None:
-            return False, "Unable to connect to MongoDB Atlas. Please check your credentials in .env and IP Whitelist in MongoDB Atlas."
+            err_details = _last_mongo_error or "Check MONGODB_URI & IP Whitelist"
+            return False, f"Unable to connect to MongoDB Atlas ({err_details})."
 
         # Check if user or email already exists
         if users.find_one({"email": clean_email}):
