@@ -21,23 +21,40 @@ def reset_mongo_client():
 
 def get_mongo_client():
     global _mongo_client
-    load_dotenv(override=True)
     uri = os.getenv('MONGODB_URI') or getattr(settings, 'MONGODB_URI', '') or DEFAULT_MONGODB_URI
     if not uri:
         logger.error("No MONGODB_URI configured.")
         return None
 
+    if _mongo_client is not None:
+        try:
+            _mongo_client.admin.command('ping')
+            return _mongo_client
+        except Exception:
+            _mongo_client = None
+
     try:
-        if _mongo_client is None:
-            _mongo_client = MongoClient(
-                uri,
-                serverSelectionTimeoutMS=5000,
-                tlsCAFile=certifi.where()
-            )
+        client = MongoClient(
+            uri,
+            serverSelectionTimeoutMS=5000,
+            tlsCAFile=certifi.where()
+        )
+        client.admin.command('ping')
+        _mongo_client = client
         return _mongo_client
     except Exception as e:
-        logger.error(f"Failed to initialize MongoClient: {e}")
-        return None
+        logger.warning(f"MongoClient with certifi failed: {e}. Trying default SSL context...")
+        try:
+            client = MongoClient(
+                uri,
+                serverSelectionTimeoutMS=5000
+            )
+            client.admin.command('ping')
+            _mongo_client = client
+            return _mongo_client
+        except Exception as err:
+            logger.error(f"Failed to connect to MongoDB: {err}")
+            return None
 
 
 def get_mongo_db():
