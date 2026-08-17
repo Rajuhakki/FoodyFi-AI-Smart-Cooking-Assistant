@@ -21,6 +21,7 @@ def reset_mongo_client():
 
 def get_mongo_client():
     global _mongo_client
+    load_dotenv(override=True)
     uri = os.getenv('MONGODB_URI') or getattr(settings, 'MONGODB_URI', '') or DEFAULT_MONGODB_URI
     if not uri:
         logger.error("No MONGODB_URI configured.")

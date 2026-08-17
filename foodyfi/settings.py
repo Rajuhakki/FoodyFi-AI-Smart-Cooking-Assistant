@@ -145,5 +145,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 
 # MongoDB Configuration
-MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb+srv://rajuhakki21_db_user:<db_password>@cluster0.nsvze8d.mongodb.net/?appName=Cluster0')
+MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb+srv://rajuhakki21_db_user:NcvPtWkHYMeRUHAR@cluster0.nsvze8d.mongodb.net/?appName=Cluster0')
 
