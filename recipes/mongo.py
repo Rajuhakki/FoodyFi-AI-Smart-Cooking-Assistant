@@ -54,8 +54,20 @@ def get_mongo_client():
             _mongo_client = client
             return _mongo_client
         except Exception as err:
-            logger.error(f"Failed to connect to MongoDB: {err}")
-            return None
+            logger.warning(f"MongoClient default failed: {err}. Trying tlsAllowInvalidCertificates...")
+            try:
+                client = MongoClient(
+                    uri,
+                    serverSelectionTimeoutMS=5000,
+                    tls=True,
+                    tlsAllowInvalidCertificates=True
+                )
+                client.admin.command('ping')
+                _mongo_client = client
+                return _mongo_client
+            except Exception as final_err:
+                logger.error(f"Failed to connect to MongoDB: {final_err}")
+                return None
 
 
 def get_mongo_db():
