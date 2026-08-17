@@ -25,9 +25,19 @@ def reset_mongo_client():
 def get_mongo_client():
     global _mongo_client, _last_mongo_error
     load_dotenv(override=True)
-    uri = os.getenv('MONGODB_URI') or getattr(settings, 'MONGODB_URI', '') or DEFAULT_MONGODB_URI
-    if not uri:
-        _last_mongo_error = "No MONGODB_URI configured."
+    
+    env_uri = (os.getenv('MONGODB_URI') or '').strip()
+    settings_uri = (getattr(settings, 'MONGODB_URI', '') or '').strip()
+
+    if env_uri and '@' in env_uri:
+        uri = env_uri
+    elif settings_uri and '@' in settings_uri:
+        uri = settings_uri
+    else:
+        uri = DEFAULT_MONGODB_URI
+
+    if not uri or '@' not in uri:
+        _last_mongo_error = "Invalid MONGODB_URI format."
         logger.error(_last_mongo_error)
         return None
 
