@@ -4,11 +4,53 @@
 {% block title %}{{ recipe.title }} - FoodyFi AI Recipe{% endblock %}
 
 {% block content %}
-<div style="max-width: 900px; margin: 0 auto;">
+<div style="max-width: 950px; margin: 0 auto;">
     
-    <a href="{% url 'home' %}" class="btn btn-secondary" style="margin-bottom: 1.5rem;">
-        <i class="fas fa-arrow-left"></i> Back to Generator
-    </a>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <a href="{% url 'home' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Generator
+        </a>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <button type="button" id="share-card-btn" class="btn btn-secondary" style="background: rgba(236, 72, 153, 0.2); border-color: rgba(236, 72, 153, 0.4); color: #f472b6;">
+                <i class="fas fa-camera-retro"></i> Instagram Story Card
+            </button>
+            <span class="funny-badge" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171;">
+                <i class="fab fa-youtube" style="color: #ef4444;"></i> Includes YouTube Video
+            </span>
+        </div>
+    </div>
+
+    <!-- Suggested Recipe Options Selection Section -->
+    {% if other_options and other_options|length > 1 %}
+    <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2.5rem; background: rgba(30, 41, 59, 0.7); border-color: rgba(249, 115, 22, 0.3);">
+        <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: #f97316; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-utensils"></i> Suggested Recipe Options (Choose Dish):
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+            {% for opt in other_options %}
+            <a href="{% url 'recipe_detail' opt.id %}?batch={{ batch_str }}" 
+               class="recipe-option-card {% if opt.id == recipe.id %}selected{% else %}unselected{% endif %}">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                    <span class="option-badge {% if opt.id == recipe.id %}selected{% endif %}">
+                        Option {{ forloop.counter }} {% if opt.id == recipe.id %}(Selected){% endif %}
+                    </span>
+                    <span style="font-size: 0.75rem; color: #f59e0b; font-weight: 600;">
+                        <i class="far fa-clock"></i> {{ opt.prep_time }}
+                    </span>
+                </div>
+                <h4 style="font-size: 1.05rem; color: white; margin-bottom: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    {{ opt.title }}
+                </h4>
+                {% if opt.funny_title %}
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;">
+                        {{ opt.funny_title }}
+                    </p>
+                {% endif %}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Recipe Main Hero Card -->
     <div class="glass-panel" style="overflow: hidden; margin-bottom: 2.5rem;">
@@ -51,10 +93,76 @@
                     <span style="color: var(--text-secondary); font-size: 0.9rem;" id="ratings-count-display">({{ ratings_count }} ratings)</span>
                 </div>
 
-                <div style="display: flex; gap: 1rem; font-size: 0.9rem; color: var(--text-secondary);">
-                    <span><i class="fas fa-globe"></i> Language: <strong>{{ recipe.language }}</strong></span>
-                    <span><i class="far fa-clock"></i> {{ recipe.created_at|date:"M d, Y" }}</span>
+                <div style="display: flex; flex-wrap: wrap; gap: 1rem; font-size: 0.9rem; color: var(--text-secondary);">
+                    <span><i class="far fa-clock" style="color: #f59e0b;"></i> Prep: <strong>{{ recipe.prep_time }}</strong></span>
+                    <span><i class="fas fa-signal" style="color: #10b981;"></i> Level: <strong>{{ recipe.difficulty }}</strong></span>
+                    <span><i class="fas fa-globe" style="color: #3b82f6;"></i> Language: <strong>{{ recipe.language }}</strong></span>
                 </div>
+            </div>
+
+            <!-- 🥗 FEATURE 1: AI NUTRITION & HEALTH BREAKDOWN PANEL -->
+            {% with nut=recipe.nutrition_dict %}
+            <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2.5rem; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <h3 style="font-size: 1.35rem; color: #34d399; margin: 0; display: flex; align-items: center; gap: 0.6rem;">
+                        <i class="fas fa-heart-pulse"></i> AI Nutrition & Health Breakdown
+                    </h3>
+                    <span style="background: rgba(16, 185, 129, 0.25); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 0.35rem 0.85rem; border-radius: 20px; font-weight: 700; font-size: 0.85rem;">
+                        <i class="fas fa-shield-heart"></i> {{ nut.health_badge }} (Score: {{ nut.health_score }})
+                    </span>
+                </div>
+
+                <!-- 4 Macro Metric Cards -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem;">
+                    <div style="background: rgba(15, 23, 42, 0.6); padding: 1rem; border-radius: var(--radius-sm); text-align: center; border: 1px solid var(--border-glass);">
+                        <i class="fas fa-fire" style="color: #f97316; font-size: 1.5rem; margin-bottom: 0.3rem;"></i>
+                        <span style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Calories</span>
+                        <strong style="font-size: 1.25rem; color: white;">{{ nut.calories }}</strong>
+                    </div>
+
+                    <div style="background: rgba(15, 23, 42, 0.6); padding: 1rem; border-radius: var(--radius-sm); text-align: center; border: 1px solid var(--border-glass);">
+                        <i class="fas fa-dumbbell" style="color: #3b82f6; font-size: 1.5rem; margin-bottom: 0.3rem;"></i>
+                        <span style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Protein</span>
+                        <strong style="font-size: 1.25rem; color: white;">{{ nut.protein }}</strong>
+                    </div>
+
+                    <div style="background: rgba(15, 23, 42, 0.6); padding: 1rem; border-radius: var(--radius-sm); text-align: center; border: 1px solid var(--border-glass);">
+                        <i class="fas fa-wheat-awn" style="color: #f59e0b; font-size: 1.5rem; margin-bottom: 0.3rem;"></i>
+                        <span style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Carbs</span>
+                        <strong style="font-size: 1.25rem; color: white;">{{ nut.carbs }}</strong>
+                    </div>
+
+                    <div style="background: rgba(15, 23, 42, 0.6); padding: 1rem; border-radius: var(--radius-sm); text-align: center; border: 1px solid var(--border-glass);">
+                        <i class="fas fa-droplet" style="color: #ec4899; font-size: 1.5rem; margin-bottom: 0.3rem;"></i>
+                        <span style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Fats</span>
+                        <strong style="font-size: 1.25rem; color: white;">{{ nut.fat }}</strong>
+                    </div>
+                </div>
+            </div>
+            {% endwith %}
+
+            <!-- YouTube Video Tutorial Suggestion Section -->
+            <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2.5rem; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(239, 68, 68, 0.4); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.25rem; box-shadow: 0 8px 25px rgba(239, 68, 68, 0.15);">
+                <div style="display: flex; align-items: center; gap: 1rem; flex: 1; min-width: 260px;">
+                    <div style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);">
+                        <i class="fab fa-youtube"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 1.2rem; color: white; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                            Suggested YouTube Video Tutorial
+                            <span class="funny-badge" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: rgba(239, 68, 68, 0.4); font-size: 0.75rem; padding: 0.2rem 0.6rem;">
+                                Recommended
+                            </span>
+                        </h4>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">
+                            Watch exact video step-by-step tutorial: <em>"{{ recipe.youtube_query }}"</em>
+                        </p>
+                    </div>
+                </div>
+                
+                <a href="{{ recipe.get_youtube_search_url }}" target="_blank" rel="noopener noreferrer" class="btn" style="background: linear-gradient(135deg, #ef4444, #b91c1c); color: white; padding: 0.85rem 1.6rem; font-size: 1rem; border-radius: var(--radius-sm); font-weight: 600; display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; transition: all 0.25s ease; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);">
+                    <i class="fab fa-youtube" style="font-size: 1.25rem;"></i> Watch Video on YouTube <i class="fas fa-arrow-up-right-from-square" style="font-size: 0.85rem;"></i>
+                </a>
             </div>
 
             <!-- Fun Fact Highlight Box -->
@@ -69,40 +177,85 @@
 
             <!-- Interactive Cooking Mode CTA Banner -->
             <div class="glass-panel" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(239, 68, 68, 0.2)); border-color: rgba(249, 115, 22, 0.4); padding: 1.5rem; text-align: center; margin-bottom: 2.5rem;">
-                <h3 style="margin-bottom: 0.5rem;"><i class="fas fa-hat-chef"></i> Ready to cook this dish?</h3>
-                <p style="color: var(--text-secondary); margin-bottom: 1.25rem;">Use interactive Cooking Mode with hands-free Voice Text-To-Speech assistant.</p>
+                <h3 style="margin-bottom: 0.5rem;"><i class="fas fa-hat-chef"></i> Ready to cook {{ recipe.title }}?</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1.25rem;">Use interactive Cooking Mode with hands-free Voice Assistant & AI Voice Chef.</p>
                 <a href="{% url 'cooking_mode' recipe.id %}" class="btn btn-primary" style="padding: 0.9rem 2rem; font-size: 1.1rem;">
                     <i class="fas fa-play"></i> Start Interactive Cooking Mode
                 </a>
             </div>
 
-            <!-- Ingredients Section -->
+            <!-- 🛒 FEATURE 2: SUPERCHARGED SMART GROCERY CHECKLIST & EXPORTS -->
             <div style="margin-bottom: 2.5rem;">
-                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: #f97316;">
-                    <i class="fas fa-basket-shopping"></i> Ingredients Needed
-                </h3>
-                <ul style="list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <h3 style="font-size: 1.5rem; color: #f97316; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-basket-shopping"></i> Smart Grocery Checklist
+                        </h3>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);" id="grocery-counter">
+                            0 / {{ ingredients_list|length }} items checked off
+                        </span>
+                    </div>
+                    
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button type="button" id="toggle-have-btn" class="btn btn-secondary" style="padding: 0.5rem 0.9rem; font-size: 0.85rem;">
+                            <i class="fas fa-eye-slash"></i> Hide Checked Items
+                        </button>
+                        <button type="button" id="export-whatsapp-btn" class="btn" style="background: #25D366; color: white; padding: 0.5rem 0.9rem; font-size: 0.85rem; font-weight: 600;">
+                            <i class="fab fa-whatsapp" style="font-size: 1.1rem;"></i> WhatsApp List
+                        </button>
+                        <button type="button" id="print-grocery-btn" class="btn btn-secondary" onclick="window.print();" style="padding: 0.5rem 0.9rem; font-size: 0.85rem;">
+                            <i class="fas fa-print"></i> PDF / Print
+                        </button>
+                        <button type="button" id="copy-grocery-btn" class="btn btn-secondary" style="padding: 0.5rem 0.9rem; font-size: 0.85rem;">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                    Check off ingredients you already have in your pantry. Use "Hide Checked Items" to view only what you need to buy at the store!
+                </p>
+
+                <ul style="list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.75rem;" id="grocery-checklist">
                     {% for item in ingredients_list %}
-                    <li class="glass-panel" style="padding: 0.75rem 1rem; border-radius: var(--radius-sm); display: flex; align-items: center; gap: 0.75rem;">
-                        <i class="fas fa-circle-check" style="color: #10b981;"></i>
-                        <span>{{ item }}</span>
+                    <li class="glass-panel grocery-item" style="padding: 0.75rem 1rem; border-radius: var(--radius-sm); display: flex; align-items: center; gap: 0.75rem; cursor: pointer; transition: all 0.25s ease;">
+                        <input type="checkbox" class="grocery-checkbox" id="ing-check-{{ forloop.counter }}" style="width: 18px; height: 18px; accent-color: #10b981; cursor: pointer;">
+                        <label for="ing-check-{{ forloop.counter }}" class="grocery-label" style="cursor: pointer; flex: 1; margin: 0; user-select: none; font-size: 0.95rem;">
+                            {{ item }}
+                        </label>
                     </li>
                     {% endfor %}
                 </ul>
             </div>
 
-            <!-- Step-by-Step Overview Section -->
+            <!-- Step-by-Step Detailed Cooking Instructions -->
             <div>
-                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: #f97316;">
-                    <i class="fas fa-list-check"></i> Step-by-Step Instructions
+                <h3 style="font-size: 1.5rem; margin-bottom: 1.25rem; color: #f97316; display: flex; align-items: center; gap: 0.6rem;">
+                    <i class="fas fa-list-check"></i> Master Chef Step-by-Step Instructions
                 </h3>
-                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
                     {% for step in steps %}
-                    <div class="glass-panel" style="padding: 1.25rem; display: flex; gap: 1rem; align-items: flex-start;">
-                        <div style="background: var(--primary-gradient); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">
+                    <div class="glass-panel instruction-step-card" style="padding: 1.5rem; display: flex; gap: 1.25rem; align-items: flex-start; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; transition: transform 0.25s ease, border-color 0.25s ease;">
+                        <div style="background: linear-gradient(135deg, #f97316, #ef4444); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; flex-shrink: 0; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);">
                             {{ forloop.counter }}
                         </div>
-                        <p style="line-height: 1.6; padding-top: 0.2rem;">{{ step }}</p>
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                                <span style="font-size: 0.8rem; font-weight: 700; color: #f97316; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    Phase {{ forloop.counter }}
+                                </span>
+                                {% if "low flame" in step|lower or "slow flame" in step|lower or "low heat" in step|lower %}
+                                    <span class="flame-badge flame-low"><i class="fas fa-fire"></i> Low Flame</span>
+                                {% elif "high flame" in step|lower or "high heat" in step|lower %}
+                                    <span class="flame-badge flame-high"><i class="fas fa-fire-flame-curved"></i> High Flame</span>
+                                {% else %}
+                                    <span class="flame-badge flame-medium"><i class="fas fa-fire-burner"></i> Medium Flame</span>
+                                {% endif %}
+                            </div>
+                            <p style="line-height: 1.7; color: var(--text-primary); font-size: 1.05rem; margin: 0;">
+                                {{ step }}
+                            </p>
+                        </div>
                     </div>
                     {% endfor %}
                 </div>
@@ -148,4 +301,154 @@
     </div>
 
 </div>
+
+<!-- 📸 FEATURE 6: INSTAGRAM STORY RECIPE CARD MODAL -->
+<div id="story-card-modal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="max-width: 420px; width: 100%; background: linear-gradient(145deg, #1e293b, #0f172a); border: 2px solid #ec4899; border-radius: 24px; padding: 1.5rem; color: white; position: relative; box-shadow: 0 20px 50px rgba(236, 72, 153, 0.3);">
+        <button type="button" id="close-story-modal" style="position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.1); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; cursor: pointer;">
+            <i class="fas fa-xmark"></i>
+        </button>
+
+        <!-- Instagram Card Header -->
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+            <div style="background: linear-gradient(135deg, #f97316, #ec4899); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                🍲
+            </div>
+            <div>
+                <strong style="display: block; font-size: 1rem; color: white;">FoodyFi AI Kitchen</strong>
+                <span style="font-size: 0.75rem; color: #ec4899;">Recipe Story Card ✨</span>
+            </div>
+        </div>
+
+        <!-- Recipe Image -->
+        {% if recipe.image_url %}
+        <div style="width: 100%; height: 220px; border-radius: 16px; overflow: hidden; margin-bottom: 1rem; position: relative;">
+            <img src="{{ recipe.image_url }}" alt="{{ recipe.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+            <span class="funny-badge" style="position: absolute; bottom: 0.75rem; left: 0.75rem; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85);">
+                {{ recipe.funny_title }}
+            </span>
+        </div>
+        {% endif %}
+
+        <h3 style="font-size: 1.4rem; color: white; margin-bottom: 0.5rem; text-align: center;">{{ recipe.title }}</h3>
+        
+        <!-- Quick Stats -->
+        {% with nut=recipe.nutrition_dict %}
+        <div style="display: flex; justify-content: space-around; background: rgba(255,255,255,0.05); padding: 0.75rem; border-radius: 12px; margin-bottom: 1rem; font-size: 0.85rem;">
+            <span>🔥 {{ nut.calories }}</span>
+            <span>💪 {{ nut.protein }}</span>
+            <span>⭐ {{ avg_rating }} / 5</span>
+        </div>
+        {% endwith %}
+
+        {% if recipe.fun_fact %}
+        <p style="font-size: 0.85rem; font-style: italic; color: #cbd5e1; text-align: center; margin-bottom: 1.25rem;">
+            "{{ recipe.fun_fact }}"
+        </p>
+        {% endif %}
+
+        <!-- Modal Actions -->
+        <div style="display: flex; gap: 0.75rem;">
+            <button type="button" onclick="window.print();" class="btn btn-primary" style="flex: 1; background: linear-gradient(135deg, #ec4899, #8b5cf6); padding: 0.75rem;">
+                <i class="fas fa-print"></i> Save / Print Card
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. WhatsApp Grocery List Export
+    const whatsappBtn = document.getElementById('export-whatsapp-btn');
+    const copyBtn = document.getElementById('copy-grocery-btn');
+    const checklist = document.getElementById('grocery-checklist');
+
+    if (whatsappBtn) {
+        whatsappBtn.addEventListener('click', function() {
+            let items = [];
+            document.querySelectorAll('#grocery-checklist li').forEach(li => {
+                const cb = li.querySelector('.grocery-checkbox');
+                const label = li.querySelector('.grocery-label').innerText.trim();
+                const status = cb.checked ? '✅ [HAVE]' : '🛒 [BUY]';
+                items.push(`${status} ${label}`);
+            });
+            const text = `🍲 *FoodyFi Grocery List for {{ recipe.title|escapejs }}*:\n\n` + items.join('\n') + `\n\nGenerated with FoodyFi AI Smart Cooking Assistant!`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+        });
+    }
+
+    if (copyBtn) {
+        copyBtn.addEventListener('click', function() {
+            let items = [];
+            document.querySelectorAll('#grocery-checklist li').forEach(li => {
+                const label = li.querySelector('.grocery-label').innerText.trim();
+                items.push(`• ${label}`);
+            });
+            const text = `Grocery List for {{ recipe.title|escapejs }}:\n` + items.join('\n');
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Grocery list copied to clipboard!');
+            });
+        });
+    }
+
+    // Interactive Checkbox styling & Live Counter & Hide Filter
+    let hideChecked = false;
+    const toggleHaveBtn = document.getElementById('toggle-have-btn');
+
+    function updateGroceryCounter() {
+        const total = document.querySelectorAll('.grocery-checkbox').length;
+        const checkedCount = document.querySelectorAll('.grocery-checkbox:checked').length;
+        const counterSpan = document.getElementById('grocery-counter');
+        if (counterSpan) {
+            counterSpan.textContent = `${checkedCount} / ${total} items checked off`;
+        }
+    }
+
+    if (toggleHaveBtn) {
+        toggleHaveBtn.addEventListener('click', function() {
+            hideChecked = !hideChecked;
+            this.innerHTML = hideChecked ? '<i class="fas fa-eye"></i> Show All Items' : '<i class="fas fa-eye-slash"></i> Hide Checked Items';
+            
+            document.querySelectorAll('.grocery-item').forEach(item => {
+                const cb = item.querySelector('.grocery-checkbox');
+                if (hideChecked && cb.checked) {
+                    item.style.display = 'none';
+                } else {
+                    item.style.display = 'flex';
+                }
+            });
+        });
+    }
+
+    document.querySelectorAll('.grocery-checkbox').forEach(cb => {
+        cb.addEventListener('change', function() {
+            const label = this.nextElementSibling;
+            const liItem = this.closest('.grocery-item');
+            if (this.checked) {
+                label.style.textDecoration = 'line-through';
+                label.style.opacity = '0.6';
+                if (hideChecked) liItem.style.display = 'none';
+            } else {
+                label.style.textDecoration = 'none';
+                label.style.opacity = '1';
+                if (hideChecked) liItem.style.display = 'flex';
+            }
+            updateGroceryCounter();
+        });
+    });
+
+    // 2. Instagram Story Card Modal
+    const shareBtn = document.getElementById('share-card-btn');
+    const modal = document.getElementById('story-card-modal');
+    const closeModal = document.getElementById('close-story-modal');
+
+    if (shareBtn && modal) {
+        shareBtn.addEventListener('click', () => modal.style.display = 'flex');
+        closeModal.addEventListener('click', () => modal.style.display = 'none');
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+    }
+});
+</script>
 {% endblock %}

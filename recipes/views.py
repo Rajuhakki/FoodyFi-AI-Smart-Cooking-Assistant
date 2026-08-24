@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from .models import Recipe, Rating, Review
-from .ai_services import detect_ingredients_from_image, generate_recipe_ai, generate_food_image_ai
+from .ai_services import detect_ingredients_from_image, generate_recipe_ai, generate_food_image_ai, ask_voice_chef_ai
 from .mongo import create_user, verify_user, get_user_by_username, update_user_profile
 
 def login_required_custom(view_func):
@@ -58,44 +58,88 @@ def detect_ingredients_api(request):
 @login_required_custom
 def generate_recipe_view(request):
     """
-    POST endpoint that takes ingredients and selected language, calls AI,
-    saves the generated Recipe in DB, and redirects to the Result/Detail view.
+    POST endpoint that takes ingredients and selected language, calls AI to generate 3 recipe options,
+    saves all 3 in DB, and redirects to the Result/Detail view displaying options.
     """
     ingredients_text = request.POST.get('ingredients', '').strip()
     language = request.POST.get('language', 'English')
+    dietary_list = request.POST.getlist('dietary')
+    is_zero_waste = request.POST.get('zero_waste') == 'true'
     
     if not ingredients_text:
         return redirect('home')
 
-    # 1. Call AI to generate structured recipe content
-    ai_data = generate_recipe_ai(ingredients_text, language)
+    # 1. Call AI to generate 3 structured recipe options
+    ai_recipes = generate_recipe_ai(ingredients_text, language, dietary_list=dietary_list, is_zero_waste=is_zero_waste)
+    if isinstance(ai_recipes, dict):
+        ai_recipes = [ai_recipes]
 
-    # 2. Call AI to generate dish image
-    image_url = generate_food_image_ai(ai_data['title'])
+    created_recipes = []
+    for item in ai_recipes:
+        image_url = generate_food_image_ai(item['title'])
+        recipe = Recipe.objects.create(
+            title=item['title'],
+            funny_title=item.get('funny_title', ''),
+            ingredients=json.dumps(item['ingredients']) if isinstance(item['ingredients'], list) else str(item['ingredients']),
+            content=json.dumps(item['steps']) if isinstance(item['steps'], list) else str(item['steps']),
+            fun_fact=item.get('fun_fact', ''),
+            language=language,
+            image_url=image_url,
+            youtube_query=item.get('youtube_query', f"{item['title']} recipe video tutorial"),
+            youtube_video_id=item.get('youtube_video_id', ''),
+            prep_time=item.get('prep_time', '25 mins'),
+            difficulty=item.get('difficulty', 'Medium'),
+            nutrition=json.dumps(item.get('nutrition', {})) if isinstance(item.get('nutrition'), dict) else str(item.get('nutrition', ''))
+        )
+        created_recipes.append(recipe)
 
-    # 3. Save recipe to database
-    recipe = Recipe.objects.create(
-        title=ai_data['title'],
-        funny_title=ai_data['funny_title'],
-        ingredients=json.dumps(ai_data['ingredients']) if isinstance(ai_data['ingredients'], list) else str(ai_data['ingredients']),
-        content=json.dumps(ai_data['steps']) if isinstance(ai_data['steps'], list) else str(ai_data['steps']),
-        fun_fact=ai_data['fun_fact'],
-        language=language,
-        image_url=image_url
-    )
+    batch_ids_str = ",".join(str(r.id) for r in created_recipes)
+    first_id = created_recipes[0].id if created_recipes else 1
+    return redirect(f"/recipe/{first_id}/?batch={batch_ids_str}")
 
-    return redirect('recipe_detail', recipe_id=recipe.id)
+@require_POST
+@login_required_custom
+def ask_voice_chef_api(request):
+    """
+    AJAX endpoint for AI Voice Chef Assistant questions during cooking.
+    """
+    question = request.POST.get('question', '').strip()
+    recipe_title = request.POST.get('recipe_title', '').strip()
+    ingredients = request.POST.get('ingredients', '').strip()
+    current_step = request.POST.get('current_step', '').strip()
+
+    if not question:
+        return JsonResponse({'error': 'Question cannot be empty'}, status=400)
+
+    answer = ask_voice_chef_ai(question, recipe_title, ingredients, current_step)
+    return JsonResponse({
+        'success': True,
+        'answer': answer
+    })
 
 @login_required_custom
 def recipe_detail_view(request, recipe_id):
     """
-    Renders the result page displaying the generated recipe, funny name,
-    fun fact, ratings, comment review form, and cooking mode CTA.
+    Renders the result page displaying the generated recipe, YouTube video tutorial,
+    3 alternative suggested options, funny name, fun fact, ratings, review form, and cooking mode.
     """
     recipe = get_object_or_404(Recipe, id=recipe_id)
     reviews = recipe.reviews.all()
     avg_rating = recipe.average_rating()
     ratings_count = recipe.ratings_count()
+    
+    batch_str = request.GET.get('batch', '').strip()
+    other_options = []
+    if batch_str:
+        try:
+            b_ids = [int(x) for x in batch_str.split(',') if x.isdigit()]
+            other_options = list(Recipe.objects.filter(id__in=b_ids))
+        except Exception:
+            other_options = []
+
+    if not other_options:
+        # Fallback to recent recipes
+        other_options = list(Recipe.objects.all()[:3])
     
     return render(request, 'recipes/result.html', {
         'recipe': recipe,
@@ -103,7 +147,9 @@ def recipe_detail_view(request, recipe_id):
         'avg_rating': avg_rating,
         'ratings_count': ratings_count,
         'steps': recipe.steps_list(),
-        'ingredients_list': recipe.ingredients_list()
+        'ingredients_list': recipe.ingredients_list(),
+        'other_options': other_options,
+        'batch_str': batch_str
     })
 
 @login_required_custom

@@ -14,10 +14,16 @@
 
     <!-- Sticky Glass Navbar -->
     <nav class="navbar">
-        <a href="{% url 'home' %}" class="brand-logo">
-            <i class="fas fa-utensils"></i>
-            <span class="brand-text">Foody<span class="gradient-text">Fi</span></span>
-        </a>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <a href="{% url 'home' %}" class="brand-logo">
+                <i class="fas fa-utensils"></i>
+                <span class="brand-text">Foody<span class="gradient-text">Fi</span></span>
+            </a>
+            <span style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">
+                <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
+                AI Active
+            </span>
+        </div>
         <div class="nav-links">
             <a href="{% url 'home' %}" class="nav-link"><i class="fas fa-magic"></i> Generator</a>
             <a href="{% url 'search_recipes' %}" class="nav-link"><i class="fas fa-search"></i> Search Recipes</a>
@@ -26,7 +32,7 @@
                 <a href="{% url 'logout' %}" class="nav-link btn-logout" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a>
             {% else %}
                 <a href="{% url 'login' %}" class="nav-link"><i class="fas fa-sign-in-alt"></i> Login</a>
-                <a href="{% url 'register' %}" class="nav-link btn-register" style="background: var(--primary-gradient); color: white; padding: 0.4rem 1rem; border-radius: 20px;"><i class="fas fa-user-plus"></i> Register</a>
+                <a href="{% url 'register' %}" class="nav-link btn-register" style="background: var(--primary-gradient); color: white; padding: 0.45rem 1.1rem; border-radius: 20px; box-shadow: var(--shadow-glow);"><i class="fas fa-user-plus"></i> Register</a>
             {% endif %}
         </div>
     </nav>

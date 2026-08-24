@@ -1,8 +1,22 @@
+# Django Web Framework
 Django>=5.0,<6.1
+asgiref>=3.7.0
+sqlparse>=0.4.4
+
+# Production Web Server & Static Files
 gunicorn>=21.2.0
 whitenoise>=6.6.0
+
+# Database - MongoDB Atlas Driver & Security
 pymongo[srv]>=4.6.0
 dnspython>=2.6.0
 certifi>=2024.2.2
-python-dotenv>=1.0.0
+
+# AI Services & APIs
 openai>=1.0.0
+requests>=2.31.0
+pillow>=10.0.0
+
+# Environment Configuration
+python-dotenv>=1.0.0
+

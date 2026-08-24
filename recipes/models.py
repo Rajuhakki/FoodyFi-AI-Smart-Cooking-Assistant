@@ -10,6 +10,11 @@ class Recipe(models.Model):
     fun_fact = models.TextField(blank=True, default='')
     language = models.CharField(max_length=30, default='English')
     image_url = models.TextField(blank=True, default='')
+    youtube_query = models.CharField(max_length=255, blank=True, default='')
+    youtube_video_id = models.CharField(max_length=50, blank=True, default='')
+    prep_time = models.CharField(max_length=50, default='25 mins')
+    difficulty = models.CharField(max_length=50, default='Medium')
+    nutrition = models.TextField(blank=True, default='', help_text="JSON string of calorie and macro metrics")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -17,6 +22,48 @@ class Recipe(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.language})"
+
+    def nutrition_dict(self):
+        """Returns nutrition data as a dictionary with defaults if empty."""
+        if self.nutrition:
+            try:
+                data = json.loads(self.nutrition)
+                if isinstance(data, dict):
+                    return data
+            except Exception:
+                pass
+        return {
+            "calories": "360 kcal",
+            "protein": "16g",
+            "carbs": "28g",
+            "fat": "18g",
+            "health_score": "8.8/10",
+            "health_badge": "Balanced & Protein Rich"
+        }
+
+    def get_youtube_embed_url(self):
+        if not self.youtube_video_id and (self.youtube_query or self.title):
+            from .ai_services import fetch_youtube_video_id
+            query = self.youtube_query or f"{self.title} recipe tutorial"
+            vid = fetch_youtube_video_id(query)
+            if vid:
+                self.youtube_video_id = vid
+                try:
+                    self.save(update_fields=['youtube_video_id'])
+                except Exception:
+                    pass
+
+        if self.youtube_video_id:
+            return f"https://www.youtube-nocookie.com/embed/{self.youtube_video_id}?rel=0&modestbranding=1"
+
+        import urllib.parse
+        query = self.youtube_query or f"{self.title} recipe tutorial"
+        return f"https://www.youtube-nocookie.com/embed?listType=search&list={urllib.parse.quote(query)}"
+
+    def get_youtube_search_url(self):
+        query = self.youtube_query or f"{self.title} recipe tutorial"
+        import urllib.parse
+        return f"https://www.youtube.com/results?search_query={urllib.parse.quote(query)}"
 
     def average_rating(self):
         avg = self.ratings.aggregate(Avg('value'))['value__avg']

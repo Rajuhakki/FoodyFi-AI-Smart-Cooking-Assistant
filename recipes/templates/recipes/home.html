@@ -53,6 +53,45 @@
             </div>
         </div>
 
+        <!-- FEATURE 4: DIETARY & HEALTH PREFERENCE FILTERS -->
+        <div style="margin-bottom: 1.5rem;">
+            <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-heart-pulse" style="color: #10b981;"></i> Dietary & Health Preferences (Optional):
+            </label>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                <label class="glass-panel" style="padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border-glass);">
+                    <input type="checkbox" name="dietary" value="Vegetarian" style="accent-color: #10b981;"> 🥬 Vegetarian / Vegan
+                </label>
+                <label class="glass-panel" style="padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border-glass);">
+                    <input type="checkbox" name="dietary" value="High Protein" style="accent-color: #3b82f6;"> 🏋️ High Protein
+                </label>
+                <label class="glass-panel" style="padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border-glass);">
+                    <input type="checkbox" name="dietary" value="Keto" style="accent-color: #f59e0b;"> 🥑 Keto / Low Carb
+                </label>
+                <label class="glass-panel" style="padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border-glass);">
+                    <input type="checkbox" name="dietary" value="Gluten Free" style="accent-color: #ec4899;"> 🌾 Gluten Free
+                </label>
+                <label class="glass-panel" style="padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border-glass);">
+                    <input type="checkbox" name="dietary" value="Diabetic Friendly" style="accent-color: #8b5cf6;"> 🩺 Diabetic Friendly
+                </label>
+            </div>
+        </div>
+
+        <!-- FEATURE 5: ZERO-WASTE LEFTOVER OPTIMIZER TOGGLE -->
+        <div class="glass-panel" style="padding: 1rem; margin-bottom: 1.5rem; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px;">
+            <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin: 0;">
+                <input type="checkbox" name="zero_waste" value="true" style="width: 20px; height: 20px; accent-color: #10b981; cursor: pointer;">
+                <div>
+                    <strong style="color: #34d399; font-size: 0.95rem; display: block;">
+                        <i class="fas fa-recycle"></i> Enable Zero-Waste Fridge Mode
+                    </strong>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">
+                        Instructs AI to prioritize 100% usage of your input ingredients to eliminate food waste!
+                    </span>
+                </div>
+            </label>
+        </div>
+
         <!-- Language Selector -->
         <div class="form-group">
             <label class="form-label" for="language-select">
