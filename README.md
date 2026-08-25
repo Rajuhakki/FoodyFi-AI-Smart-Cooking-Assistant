@@ -1,6 +1,6 @@
 # 🍲 FoodyFi – AI Smart Cooking Assistant
 
-🌐 **Live Vercel Deployment**: [https://foody-fi-ai-smart-cooking-assistant-beta.vercel.app/](https://foody-fi-ai-smart-cooking-assistant-beta.vercel.app/)
+🌐 **Live Vercel Deployment**: [https://foody-fi-ai-smart-cooking-assistant-beta.vercel.app/](https://foody-fi-ai-smart-cooking-assistant-nine.vercel.app/login/)
 
 **FoodyFi** is a state-of-the-art AI-powered smart cooking assistant web application. It helps users generate personalized recipes, analyze nutritional macros, manage smart grocery lists, detect ingredients from photos, and cook hands-free with a multilingual voice assistant and real-time AI Voice Chef!
 
