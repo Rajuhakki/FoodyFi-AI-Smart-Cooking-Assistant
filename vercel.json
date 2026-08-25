@@ -12,11 +12,7 @@
   ],
   "routes": [
     {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
-    },
-    {
-      "src": "(.*)",
+      "src": "/(.*)",
       "dest": "foodyfi/wsgi.py"
     }
   ]
